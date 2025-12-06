@@ -550,3 +550,166 @@ End
 
 
 --------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ function saveData() {
+
+   var formdata = new FormData();
+   formdata.append("Name", $("#txtname").val());  // fixed
+   formdata.append("HRA", $("#txtHRA").val());
+   formdata.append("DA", $("#txtDA").val());
+   formdata.append("EmpId", $("#hfEmpID").val()); // case match
+   formdata.append("Basic", $("#txtBasicSalary").val());
+   formdata.append("Country", $("#ddlCountry").val());
+   formdata.append("State", $("#ddlState").val());
+   formdata.append("IsActive", $("#chActive").is(':checked'));
+   formdata.append("cross", $("#txtCrossSalry").val());  // lower case
+
+     var file = $("#Pic").get(0).files[0];
+     formdata.append("Pic", file);
+
+   $.ajax({
+       url: '@Url.Action("SaveData", "Home")',
+       type: 'post',
+       contentType: false,
+       processData: false,
+       data: formdata,
+       success: function (resp) {
+           alert(resp.Msg);
+       },
+       error: function () {
+           alert("error in save data...");
+       }
+   });
+   }
+
+
+   function BindCountry() {
+
+       $.ajax({
+           url: '@Url.Action("BindCountry", "Home")',
+           type: 'post',
+           async: false,
+           data: {},
+           success: function (dt) {
+               var data = JSON.parse(dt);
+               for (var i = 0; i < data.length; i++) {
+                   $("#ddlCountry").append(" <option value=" + data[i]["Country"] + ">"+ data[i]["Country"] + "</option > ")
+               }
+
+           },
+           error: function () {
+               alert("error in bind country...")
+           }
+
+       })
+   }
+
+
+      function BindState() {
+
+      $.ajax({
+          url: '@Url.Action("BindState", "Home")',
+          type: 'post',
+          async: false,
+          data: { Country: $("#ddlCountry").val() },
+          success: function (dt) {
+              var data = JSON.parse(dt);
+              $("#ddlState").empty().append('<option value="">--Select--</option>');
+              for (var i = 0; i < data.length; i++) {
+                  $("#ddlState").append(" <option value=" + data[i]["State"] + ">" + data[i]["State"] + "</option > ")
+              }
+
+          },
+          error: function () {
+              alert("error in bind country...")
+          }
+
+      })
+
+
+
+
+  }
+   function ShowData() {
+
+   $.ajax({
+       url: '@Url.Action("ShowData", "Home")',
+       type: 'post',
+       data: { Country: $("#hfEmpID").val() },
+       success: function (dt) {
+           var data = JSON.parse(dt);
+           $("#TBody").empty();
+           for (var i = 0; i < data.length; i++) {
+               $("#TBody").append(" <tr>  <td><img  src='" + data[i]["ImagePath"] +"' /></td>  <td><button onclick=EditData(" + data[i]["EmpId"] +")>Edit</button></td><td>" + data[i]["Name"] + "</td ><td>" + data[i]["HRA"] + "</td ><td>" + data[i]["DA"] + "</td ><td>" + data[i]["Basic"] + "</td ><td>" + data[i]["CrossSalary"] + "</td ><td>" + data[i]["Country"] + "</td ><td>" + data[i]["State"] +"</td ></tr > ")
+           }
+
+       },
+       error: function () {
+           alert("error in bind country...")
+       }
+
+   })
+   }
+
+   function ClearData() {
+
+       $("#txtName").val("");
+       $("#txtBasicSalary").val("");
+       $("#txtCrossSalry").val("");
+       $("#txtDA").val("");
+       $("#txtHRA").val("");
+       $("#hfEmpID").val("")
+       $("#Pic").val("");
+       $("#ddlState").val("");
+       $("#ddlCountry").val("");
+       $("#chActive").prop("checked", false);
+
+       ShowData();
+   }
+
+
+   function EditData(id) {
+
+       $.ajax({
+           url: '/Home/EDITDATA',
+           type: 'post',
+           data: { id: id },
+           success: function (data) {
+
+               $("#txtName").val(data.Name);
+               $("#txtCrossSalry").val(data.CrossSalary);
+               $("#txtBasicSalary").val(data.BasicSalary);
+               $("#txtDA").val(data.DA);
+               $("#txtHRA").val(data.HRA);
+               $("#Pic").val("");
+               $("#hfEmpID").val(data.EmpID);
+
+               BindCountry();
+               $("#ddlCountry").val(data.Country);
+               BindState();
+               $("#ddlState").val(data.State);
+               $("#imgPreview").attr("src", data.ProfilePic);
+           },
+           error: function () {
+               alert("error in edit save data...")
+           }
+       })
+
+   }
+
+
+var tt = parseInt(5454);
