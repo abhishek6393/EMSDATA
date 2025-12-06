@@ -1,0 +1,552 @@
+@{
+    ViewBag.Title = "Home Page";
+}
+
+<table>
+
+
+    <tr>
+
+        <td>
+            Name
+        </td>
+        <td>
+
+            <input type="text" id="txtname" />
+            <input type="hidden" id="hfEmpID" value="0" />
+
+        </td>
+
+
+        <td>
+            HRA
+        </td>
+        <td>
+
+            <input type="text" id="txtHRA" />
+        </td>
+    </tr>
+
+
+    <tr>
+
+        <td>
+            Country
+        </td>
+        <td>
+
+            <select id="ddlCountry" onchange="BindState()">
+                <option>--Select---</option>
+            </select>
+        </td>
+
+
+        <td>
+            State
+        </td>
+        <td>
+
+            <select id="ddlState">
+            </select>
+        </td>
+    </tr>
+
+    <tr>
+
+        <td>
+            DA
+        </td>
+        <td>
+
+            <input type="text" id="txtDA" />
+        </td>
+
+
+        <td>
+            Basic Salary
+        </td>
+        <td>
+            <input type="text" id="txtBasicSalary" />
+        </td>
+    </tr>
+
+    <tr>
+
+        <td>
+            Cross salary
+        </td>
+        <td>
+
+            <input type="text" id="txtCrossSalry" />
+        </td>
+
+
+        <td>
+            IsActive
+        </td>
+        <td>
+            <input type="checkbox" id="chActive" />
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <label> Profile Image</label>
+            <input type="file" id="Pic" name="Pic" />
+            <img id="imgPreview" src="" width="100" height="100" />
+        </td>
+    </tr>
+
+    <tr>
+
+        <td>
+            <button id="btnSave">
+                Save
+            </button>
+        </td>
+    </tr>
+</table>
+
+
+<table>
+
+    <thead>
+        <tr>
+            <td>
+                Name
+            </td>
+            <td>
+                HRA
+            </td>
+            <td>
+                DA
+            </td>
+            <td>
+                Basic
+            </td>
+            <td>
+                Cross
+            </td>
+        </tr>
+    </thead>
+    <tbody id="TBody" >
+      
+    </tbody>
+</table>
+<script src="~/Scripts/jquery-3.7.0.min.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        ClearData();
+        BindCountry();
+        $("#btnSave").click(function () {
+
+            saveData();
+        })
+    });
+
+  function saveData() {
+
+    var formdata = new FormData();
+    formdata.append("Name", $("#txtname").val());  // fixed
+    formdata.append("HRA", $("#txtHRA").val());
+    formdata.append("DA", $("#txtDA").val());
+    formdata.append("EmpId", $("#hfEmpID").val()); // case match
+    formdata.append("Basic", $("#txtBasicSalary").val());
+    formdata.append("Country", $("#ddlCountry").val());
+    formdata.append("State", $("#ddlState").val());
+    formdata.append("IsActive", $("#chActive").is(':checked'));
+    formdata.append("cross", $("#txtCrossSalry").val());  // lower case
+
+      var file = $("#Pic").get(0).files[0];
+      formdata.append("Pic", file);
+
+    $.ajax({
+        url: '@Url.Action("SaveData", "Home")',
+        type: 'POST',
+        contentType: false,
+        processData: false,
+        data: formdata,
+        success: function (resp) {
+            alert(resp.Msg);
+        },
+        error: function () {
+            alert("error in save data...");
+        }
+    });
+    }
+
+
+    function BindCountry() {
+
+        $.ajax({
+            url: '@Url.Action("BindCountry", "Home")',
+            type: 'post',
+            data: {},
+            success: function (dt) {
+                var data = JSON.parse(dt);
+                for (var i = 0; i < data.length; i++) {
+                    $("#ddlCountry").append(" <option value=" + data[i]["Country"] + ">"+ data[i]["Country"] + "</option > ")
+                }
+
+            },
+            error: function () {
+                alert("error in bind country...")
+            }
+
+        })
+    }
+
+
+       function BindState() {
+
+       $.ajax({
+           url: '@Url.Action("BindState", "Home")',
+           type: 'post',
+           data: { Country: $("#ddlCountry").val() },
+           success: function (dt) {
+               var data = JSON.parse(dt);
+               $("#ddlState").empty().append('<option value="">--Select--</option>');
+               for (var i = 0; i < data.length; i++) {
+                   $("#ddlState").append(" <option value=" + data[i]["State"] + ">" + data[i]["State"] + "</option > ")
+               }
+
+           },
+           error: function () {
+               alert("error in bind country...")
+           }
+
+       })
+
+
+
+
+   }
+    function ShowData() {
+
+    $.ajax({
+        url: '@Url.Action("ShowData", "Home")',
+        type: 'post',
+        data: { Country: $("#hfEmpID").val() },
+        success: function (dt) {
+            var data = JSON.parse(dt);
+            $("#TBody").empty();
+            for (var i = 0; i < data.length; i++) {
+                $("#TBody").append(" <tr>  <td><img  src='" + data[i]["ImagePath"]+"' /></td>  <td><button onclick=Edit(" + data[i]["EmpId"] +")>Edit</button></td><td>" + data[i]["Name"] + "</td ><td>" + data[i]["HRA"] + "</td ><td>" + data[i]["DA"] + "</td ><td>" + data[i]["Basic"] + "</td ><td>" + data[i]["CrossSalary"] + "</td ><td>" + data[i]["Country"] + "</td ><td>" + data[i]["State"] +"</td ></tr > ")
+            }
+
+        },
+        error: function () {
+            alert("error in bind country...")
+        }
+
+    })
+    }
+
+    function ClearData() {
+
+        $("#txtName").val("");
+        $("#txtBasicSalary").val("");
+        $("#txtCrossSalry").val("");
+        $("#txtDA").val("");
+        $("#txtHRA").val("");
+        $("#hfEmpID").val("")
+        $("#Pic").val("");
+        $("#ddlState").val("");
+        $("#ddlCountry").val("");
+        $("#chActive").prop("checked", false);
+
+        ShowData();
+    }
+
+
+    function EditData(id) {
+
+        $.ajax({
+            url: '/Home/EDITDATA',
+            type: 'post',
+            data: { id: id },
+            success: function (data) {
+
+                $("#txtName").val(data.EName);
+                $("#txtCrossSalary").val(data.CrossSalary);
+                $("#txtBasicSalary").val(data.BasicSalary);
+                $("#txtDA").val(data.DA);
+                $("#txtHRA").val(data.HRA);
+                $("#Pic").val("");
+                $("#hfID").val(data.EmpID);
+                $("#txtDate").val(data.DOJ);
+                $("#chkIsAdmin").prop("checked", false);
+                $("#imgPreview").attr("src", data.ProfilePic);
+            },
+            error: function () {
+                alert("error in saving data...")
+            }
+        })
+
+    }
+
+</script>
+
+
+-------------------------------------------------------------Con-----------------------
+
+
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Xml.Linq;
+
+namespace NewOneTest.Controllers
+{
+    public class HomeController : Controller
+    {
+        SqlConnection conn = new SqlConnection("Data source=LAPTOP-05I2OQQ7;initial catalog=TempData;integrated security=true");
+        
+        public ActionResult Index()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult SaveData(int EmpId,string Name,string HRA,string DA,string Basic,string cross, HttpPostedFileBase Pic , bool IsActive,string Country,string State)
+        {
+
+            Dictionary<string, string> dic = new Dictionary<string, string>();
+            dic["Status"] = "";
+            dic["Msg"] = "";
+            var tempPath = "";
+            if (Pic != null)
+            {
+
+           
+            var filepath = Server.MapPath("~/Upload");
+           
+            var FName = Path.GetFileName(Pic.FileName);
+            var FullDPath = Path.Combine(filepath,FName);
+            if (!Directory.Exists(filepath))
+            {
+                Directory.CreateDirectory(filepath);
+
+            }
+            Pic.SaveAs(FullDPath);
+             tempPath = "/Upload/" + FName;
+
+            }
+
+            conn.Open();
+            SqlCommand cmd = new SqlCommand("USP_insertUpdateData", conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@Name",Name);
+            cmd.Parameters.AddWithValue("@HRA",HRA);
+            cmd.Parameters.AddWithValue("@DA",DA);
+            cmd.Parameters.AddWithValue("@Basic",Basic);
+            cmd.Parameters.AddWithValue("@CrossSalary", cross);
+            cmd.Parameters.AddWithValue("@IsActive",IsActive?"1":"0");
+            cmd.Parameters.AddWithValue("@Country",Country);
+            cmd.Parameters.AddWithValue("@State", State);
+            cmd.Parameters.AddWithValue("@ImagePath", tempPath);
+            SqlDataAdapter sda = new SqlDataAdapter(cmd);
+
+            DataTable dt = new DataTable();
+            sda.Fill(dt);
+            conn.Close();
+
+            if (dt.Rows.Count > 0)
+            {
+                dic["Msg"] = dt.Rows[0]["Msg"].ToString();
+            }
+            return Json(dic, JsonRequestBehavior.AllowGet);
+
+        }
+
+        public ActionResult BindCountry()
+        {
+            conn.Open();
+            SqlCommand cmd = new SqlCommand("Select * from CountryMaster", conn);
+            
+            SqlDataAdapter sda = new SqlDataAdapter(cmd);
+
+            DataTable dt = new DataTable();
+            sda.Fill(dt);
+            conn.Close();
+
+            var data = JsonConvert.SerializeObject(dt);
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult BindState(string Country)
+        {
+            conn.Open();
+            SqlCommand cmd = new SqlCommand("Select * from StateMaster where Country='"+Country+"'", conn);
+
+            SqlDataAdapter sda = new SqlDataAdapter(cmd);
+
+            DataTable dt = new DataTable();
+            sda.Fill(dt);
+            conn.Close();
+
+            var data = JsonConvert.SerializeObject(dt);
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }
+
+
+        public ActionResult ShowData(string EmpID)
+        {
+            conn.Open();
+            SqlCommand cmd = new SqlCommand("USP_ShowData", conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@EmpId", "0");
+            SqlDataAdapter sda = new SqlDataAdapter(cmd);
+            
+            DataTable dt = new DataTable();
+            sda.Fill(dt);
+            conn.Close();
+
+            var data = JsonConvert.SerializeObject(dt);
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }
+
+
+        public JsonResult EDITDATA(int id)
+        {
+            Dictionary<string, string> dic = new Dictionary<string, string>();
+            con.Open();
+            SqlCommand cmd = new SqlCommand("USP_ShowData", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@EmpID", id);
+            SqlDataAdapter sda = new SqlDataAdapter(cmd);
+            DataTable dt = new DataTable();
+            sda.Fill(dt);
+            if (dt.Rows.Count > 0)
+            {
+                dic["EmpID"] = dt.Rows[0]["EmpID"].ToString();
+                dic["ProfilePic"] = dt.Rows[0]["ProfilePic"].ToString();
+                dic["IsAdmin"] = dt.Rows[0]["IsAdmin"].ToString();
+                dic["DOJ"] = dt.Rows[0]["DOJ"].ToString();
+                dic["CrossSalary"] = dt.Rows[0]["CrossSalary"].ToString();
+                dic["DA"] = dt.Rows[0]["DA"].ToString();
+                dic["HRA"] = dt.Rows[0]["HRA"].ToString();
+                dic["BasicSalary"] = dt.Rows[0]["BasicSalary"].ToString();
+                dic["EName"] = dt.Rows[0]["EName"].ToString();
+
+            }
+            con.Close();
+            var dd = JsonConvert.SerializeObject(dic);
+            return Json(dic, JsonRequestBehavior.AllowGet);
+
+
+
+        }
+    }
+}
+
+
+--------D------------------------------
+
+
+
+Create Database TempData
+
+Use TempData
+
+
+
+Create table Emp(EmpId Int identity , Name Varchar(200),HRA Numeric(18,2),DA Numeric(18,2),Basic Numeric(18,2),
+CrossSalary Numeric(18,2),IsActive Bit Default 0,ImagePath Varchar(50)
+)
+alter table Emp Add Country Varchar(50),State Varchar(50)
+alter Proc USP_insertUpdateData
+@EmpId int =0,
+@Name Varchar(200),
+@HRA Numeric(18,2),
+@DA Numeric(18,2),
+@Basic Numeric(18,2),
+@CrossSalary Numeric(18,2),
+@IsActive Bit = 0,
+@ImagePath Varchar(50),
+@Country Varchar(50),
+@State Varchar(50)
+As
+Begin
+Declare @status Varchar(10)='ERROR',@msg Varchar(200)=''
+if @EmpId=0
+Begin
+	Insert into Emp(Name,HRA,DA,Basic,CrossSalary,IsActive,ImagePath,Country,State)
+	Values(@Name,@HRA,@DA,@Basic,@CrossSalary,@IsActive,@ImagePath,@Country,@State)
+	Set @status='SUCCESS';
+	Set @msg='Data Saved Successfully';
+End
+Else
+
+Begin
+Update Emp set 	Name=@Name,HRA=@HRA ,DA=@DA,Basic=@Basic ,CrossSalary=@CrossSalary 
+     ,IsActive=@IsActive,ImagePath=@ImagePath ,Country=@Country,State=@State
+	Where EmpId=@EmpId
+
+	Set @status='SUCCESS';
+	Set @msg='Data update Successfully';
+End
+
+Select @msg As msg
+End
+
+
+Create Proc USP_ShowData
+
+@EmpId Int
+As 
+
+Begin
+If @EmpId =0
+Begin
+	Select * from Emp  
+End
+else
+Begin
+	Select * from Emp  where EmpId=@EmpId
+End
+End
+
+
+Create Table CountryMaster(CID Int identity,Country varchar(50))
+
+Create Table StateMaster(SID Int identity,Country varchar(50),State varchar(50))
+
+
+
+Insert into StateMaster(Country,State) values('India','UP')
+,('India','Bihar')
+,('India','MP')
+,('Pakistan','Kaimur')
+,('Pakistan','Krachi')
+,('Pakistan','Lahore')
+
+
+Create PROC USP_BindCountry
+As
+Begin
+Select * from CountryMaster
+
+End
+
+Create PROC USP_BindState
+@Country varchar(50)
+As
+Begin
+Select * from StateMaster where Country=@Country
+
+End
+
+
+
+
+
+--------------
